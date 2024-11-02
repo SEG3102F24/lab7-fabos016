@@ -1,23 +1,33 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AuthorsComponent } from './authors.component';
-import {RouterTestingModule} from "@angular/router/testing";
-import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
+
+import { of } from 'rxjs';
 
 describe('AuthorsComponent', () => {
   let component: AuthorsComponent;
   let fixture: ComponentFixture<AuthorsComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-    imports: [RouterTestingModule, AuthorsComponent],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
-
+  
+  let navigateSpy: jasmine.Spy;
+  let router: Router;
+  let location: Location;
+  let mockActivatedRoute;
+  
   beforeEach(() => {
+    mockActivatedRoute = { params: of({ id: '13' }) };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: mockActivatedRoute },
+      ]
+    }).compileComponents();
+
+    router = TestBed.inject(Router);
+    location = TestBed.inject(Location);
+    navigateSpy = spyOn(router, 'navigate').and.callThrough();
+
     fixture = TestBed.createComponent(AuthorsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -25,5 +35,12 @@ describe('AuthorsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should update routing after form submission', async () => {
+    const authorId = '13';
+    component.submit(authorId);
+
+    expect(navigateSpy).toHaveBeenCalledWith(['./', authorId], { relativeTo: component['route'] });
   });
 });
