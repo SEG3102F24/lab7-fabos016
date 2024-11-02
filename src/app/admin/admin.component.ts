@@ -1,6 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {Author, Book} from '../books/model/book';
+import {Book} from '../books/model/book';
+import {Author} from '../authors/model/author'
 import {BooksService} from '../books/service/books.service';
 import { NgStyle, NgFor } from '@angular/common';
 
@@ -64,7 +65,7 @@ export class AdminComponent implements OnInit {
     setTimeout(
       () => {
         this.hideMsg = true;
-      }, 3000
+      }, 20000
     );
   }
 
@@ -77,24 +78,44 @@ export class AdminComponent implements OnInit {
       Number(this.bookForm.value.year),
       <string>this.bookForm.value.description);
     const authors = <Author[]>this.bookForm.value.authors;
+    var authorIds = new Array<number>
+    
+
     this.booksService.addBook(book).subscribe({
       next: (response) => {
+        const displayUpdateMessage = () => {
+          if (authorIds.length === authors.length) {
+            this.showMessage('info',
+              `Book ID: ${response.id}. Author IDs (not in order): ${authorIds.join(', ')}.`);
+          }
+        };
+
         authors.forEach(
           (author: Author) => {
             this.booksService.getAuthorsNamed(author.firstName, author.lastName).subscribe({
                 next: (authorList: Author[]) => {
                   if (authorList === undefined || authorList.length === 0) {
-                    this.booksService.addBookAuthor(response.id, author).subscribe();
+                    // New author, doesn't exist already
+                    this.booksService.addBookAuthor(response.id, author).subscribe({
+                      next: (createdAuthor: Author) => {
+                        authorIds.push(createdAuthor.id);
+                        displayUpdateMessage();
+                      }
+                    });
                   } else {
-                    // *** Assumes unique firstName/LastName for Authors
-                    this.booksService.updateBookAuthors(response.id, authorList[0].id).subscribe();
+                    // Existing author
+                    this.booksService.updateBookAuthors(response.id, authorList[0].id).subscribe({
+                      next: () => {
+                        authorIds.push(authorList[0].id);
+                        displayUpdateMessage();
+                      }
+                    });
                   }
                 }
               }
             );
           }
         );
-        this.showMessage('info', `The was successfully added with id ${response.id}`);
       },
       error: (_: any) => {
         this.showMessage('error', 'Unable to add the book');
