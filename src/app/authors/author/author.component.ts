@@ -17,12 +17,12 @@ export class AuthorComponent implements OnInit, OnDestroy {
   selectedAuthor!: Author | null;
   private subscription!: Subscription;
   private route: ActivatedRoute = inject(ActivatedRoute);
-  private booksService: AuthorsService = inject(AuthorsService);
+  private authorsService: AuthorsService = inject(AuthorsService);
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const id = params['id'];
-      this.subscription = this.booksService.getAuthor(id).subscribe({
+      this.subscription = this.authorsService.getAuthor(id).subscribe({
         next: (data: Author) => {
           this.selectedAuthor = data;
         },

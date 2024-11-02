@@ -1,6 +1,8 @@
 Fred Abo Setta
 300160311
 
+**I will only unit test the functionality I added, since the remaining code is sample code. I test only the "author" components because that was the only change**
+
 # BookStore
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.1.0.
